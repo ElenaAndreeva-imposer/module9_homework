@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>My final app</title>
+    <style>
+        * {
+            margin: 0;
+        }
+
+        .body {
+            display: flex;
+            flex-direction: column;
+            background-color: #434d56;
+        }
+
+        .input_area {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly;
+            align-items: center;
+            height: 300px;
+            background-color: #e6e6e6;
+        }
+
+
+        .label {
+            text-transform: uppercase;
+            font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+            letter-spacing: 0.3em;
+            text-shadow: 1px 1px 2px #999999;
+        }
+
+        .input {
+            border: 0;
+            border-bottom: 1px solid #eee;
+            box-shadow: 0 0 15px 4px rgba(0, 0, 0, 0.06);
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        .button {
+            background-color: transparent;
+            border: solid 1px #808080;
+            outline: none;
+            padding: 5px;
+            border-radius: 5px;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+
+        .button:hover {
+            background-color: #434d56;
+            color: white;
+        }
+
+        .result_area {
+            text-transform: uppercase;
+            color: white;
+            text-align: center;
+            text-shadow: 1px 1px 2px #333333;
+        }
+    </style>
+</head>
+
+<body class="body">
+    <div class="input_area">
+        <label for="input_width" class="label">Номер страницы</label>
+        <input type="number" id="page_num" class="input page_num">
+        <label for="input_heigth" class="label">Лимит</label>
+        <input type="number" id="limit" class="input limit">
+        <button type="submit" id="button" class="button">Запрос</button>
+    </div>
+    <div class="result_area" id="result"></div>
+    <script>
+        const pageNum = document.getElementById('page_num');
+        const limitInp = document.getElementById('limit');
+        const button = document.getElementById('button');
+        const result = document.getElementById('result');
+
+        function valueValidation(value, valuesRange) {
+            return typeof value === "number" && !isNaN(value) && value >= valuesRange[0] && value <= valuesRange[1];
+        }
+        function sendRequest(page, limit) {
+            let url = `https://picsum.photos/v2/list?page=${page}&limit=${limit}`;
+            const xhr = new XMLHttpRequest();
+            xhr.open("GET", url);
+            xhr.onload = function () {
+                let response = JSON.parse(xhr.response);
+                let images = ``;
+                localStorage.clear();
+                for (let img of response) {
+                    images += `<img src="${img.download_url}" width="300px" style="margin: 20px;">`;
+                }
+                localStorage.setItem("images", images);
+                result.innerHTML = images;
+            }
+            xhr.send();
+        }
+        button.addEventListener ('click', () => {
+            let page = +pageNum.value;
+            let limit = +limitInp.value;
+            let valuesRange = [1, 10];
+            if (valueValidation(page, valuesRange) && valueValidation(limit, valuesRange)) {
+                sendRequest(page, limit);
+            } else if (valueValidation(page, valuesRange)) {
+                result.innerText = "Лимит вне диапазона от 1 до 10";
+            } else if (valueValidation(limit, valuesRange)) {
+                result.innerText = "Номер страницы вне диапазона от 1 до 10";
+            } else {
+                result.innerText = "Номер страницы и лимит вне диапазона от 1 до 10";
+            }
+        });
+        document.addEventListener("DOMContentLoaded", () => {
+            let images = localStorage.getItem("images");
+            if (images) {
+                result.innerHTML = images;
+            }
+        });
+    </script>
+</body>
